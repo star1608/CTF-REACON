@@ -32,7 +32,7 @@ def create_nmap_directory():
 
 def initial_nmap_scan(ip):
     print("START INITAL NMAP SCAN -- PLEASE BE PATIENT")
-    result = subprocess.run(["nmap", "-sV", "-sC", "-vv", "-A", ip, "-oN", "nmap/inital"])
+    result = subprocess.run(["nmap", "-sV", "-sC", "-vv", ip, "-oN", "nmap/inital"])
     if result.returncode != 0:
         print_red("There was an error running the initial Nmap scan.")
         sys.exit(1)
