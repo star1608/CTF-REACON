@@ -1,4 +1,4 @@
-# CTF-REACON
+# CTF-RECON
 Basic Python Script for Inital Recon
 
 
