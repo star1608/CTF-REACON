@@ -3,6 +3,21 @@ import subprocess
 import sys
 import time
 
+print("#####################################################################################")
+print("#                                                                                   #")
+print("#                                   CTF-RECON                                       #")
+print("#                                                                                   #")
+print("#####################################################################################")
+print("#                                                                                   #")
+print("#  Author: Eyal Zabarsky                                                            #")
+print("#  Date:   04/2023                                                                  #")
+print("#  Description: ALL RIGHTS RESERVED                                                 #")
+print("#                                                                                   #")
+print("#####################################################################################")
+
+
+def print_yellow(text):
+    print("\033[33m{}\033[0m".format(text))
 
 def print_green(text):
     print("\033[32m{}\033[0m".format(text))
@@ -15,7 +30,7 @@ def print_red(text):
 def get_ip_address(url):
     if url.startswith("http://") or url.startswith("https://"):
         print_red("Please enter the IP address instead of the URL or remove http:// or https:// from the beginning of the URL.")
-        url = input("Enter the IP address: ")
+        url = input("Enter the IP address or Url without the http:// : ")
     return url
 
 
@@ -31,8 +46,8 @@ def create_nmap_directory():
 
 
 def initial_nmap_scan(ip):
-    print("START INITAL NMAP SCAN -- PLEASE BE PATIENT")
-    result = subprocess.run(["nmap", "-sV", "-sC", "-vv", ip, "-oN", "nmap/inital"])
+    print_red("START INITAL NMAP SCAN -- PLEASE BE PATIENT")
+    result = subprocess.run(["nmap", "-sV", "-sC", "-vv", "-T4", ip, "-oN", "nmap/inital"])
     if result.returncode != 0:
         print_red("There was an error running the initial Nmap scan.")
         sys.exit(1)
@@ -43,7 +58,7 @@ def full_nmap_scan(ip):
     response = input("Do you want to perform a full Nmap scan? [y/n]: ")
     if response.lower() == "y":
         print("STARTING FULL NMAP SCAN")
-        result = subprocess.run(["nmap", "-sV", "-sC", "-vv", "-A", "-p-", ip, "-oN", "nmap/allports"])
+        result = subprocess.run(["nmap", "-sV", "-sC", "-vv", "-p-", "T4",  ip, "-oN", "nmap/allports"])
         if result.returncode != 0:
             print_red("There was an error running the full Nmap scan.")
         else:
@@ -64,16 +79,21 @@ def fuzz_website(url):
             os.system("rm -rf gobuster")
             os.mkdir("gobuster")
     print("Starting Fuzzing the website with gobuster")
-    result = subprocess.run(["gobuster", "dir", "-u", url, "-w", directorylist, "-x", "php,html,zip,tar,bak,txt,asp,aspx,py", "-o", "gobuster/gobuster-site"])
-    if result.returncode != 0:
-        print_red("There was an error running the gobuster command.")
-        sys.exit(1)
+    try:
+        result = subprocess.run(["gobuster", "dir", "-u", url, "-w", directorylist, "-x", "php,html,zip,tar,bak,txt,asp,aspx,py", "-t", "50", "-o", "gobuster/gobuster-site"])
+    except subprocess.CalledProcessError as error:
+        if "invalid argument" in str(error) and "for \"-sC, --script\"" in str(error):
+            print_yellow("Skipping status code and length checks")
+            result = subprocess.run(["gobuster", "dir", "-u", url, "-w", directorylist, "-x", "php,html,zip,tar,bak,txt,asp,aspx,py", "-t", "50", "-o", "gobuster/gobuster-site", "--wildcard"])
+        else:
+            print_red("There was an error running the gobuster command.")
+            sys.exit(1)
     print_green("GOBUSTER IS DONE - PLEASE CHECK GOBUSTER DIRECTORY")
 
 
 def main():
     check_root()
-    url = input("Enter the IP address: ")
+    url = input("\033[32mEnter the IP address: \033[0m")
     ip = get_ip_address(url)
     create_nmap_directory()
     initial_nmap_scan(ip)
