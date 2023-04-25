@@ -64,8 +64,11 @@ def full_nmap_scan(ip):
         else:
             print_green("FULL NMAP SCAN DONE, SAVED UNDER NMAP DIRECTORY")
 
-
 def fuzz_website(url):
+    if not url.startswith('http'):
+        url = 'http://' + url
+    url = url.replace('http://', 'http://www.')
+    url = url.replace('https://', 'https://www.')
     response = input("Do you want to use the default wordlist? [y/n]: ")
     if response.lower() == "y":
         directorylist = "/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt"
